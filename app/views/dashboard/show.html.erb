@@ -1,0 +1,173 @@
+<% content_for :title, "Dashboard" %>
+<% a = @analytics %>
+<% stats = a.stats %>
+<% rates = a.rates %>
+<% timings = a.timings %>
+<%# Series colors: validated reference palette slots 1 (blue) and 2 (orange). %>
+<% chart_colors = %w[#2a78d6 #eb6834] %>
+<% chart_options = { colors: chart_colors, legend: "bottom", height: "240px", round: 0,
+                     library: { datasets: { bar: { borderRadius: 4, borderSkipped: "bottom", maxBarThickness: 18 } },
+                                scales: { y: { ticks: { precision: 0 } } } } } %>
+
+<h1 class="mb-6 text-2xl font-semibold">Dashboard</h1>
+
+<% if stats[:total].zero? %>
+  <p class="rounded-lg border border-slate-200 bg-white p-8 text-center text-slate-500">
+    No applications yet. <%= link_to "Sync your Gmail", sync_path, class: "underline" %> or
+    <%= link_to "add one manually", new_application_path, class: "underline" %>.
+  </p>
+<% else %>
+  <section class="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+    <% [
+         [ "Applied", stats[:total], nil, applications_path ],
+         [ "Awaiting reply", stats[:awaiting], "awaiting", nil ],
+         [ "In progress", stats[:in_progress], "in_progress", nil ],
+         [ "Ghosted", stats[:ghosted], "ghosted", nil ],
+         [ "Rejected", stats[:rejected], "rejection", nil ],
+         [ "Offers", stats[:offers], "offer", nil ]
+       ].each do |label, value, outcome, path| %>
+      <%= link_to (path || applications_path(outcome: outcome)), class: "rounded-lg border border-slate-200 bg-white p-4 hover:border-slate-400" do %>
+        <div class="text-xs uppercase tracking-wide text-slate-500"><%= label %></div>
+        <div class="mt-1 text-3xl font-semibold tabular-nums"><%= value %></div>
+      <% end %>
+    <% end %>
+  </section>
+
+  <div class="mb-8 grid gap-6 lg:grid-cols-2">
+    <section class="rounded-lg border border-slate-200 bg-white p-5">
+      <h2 class="mb-4 font-semibold">Funnel</h2>
+      <ol class="space-y-3">
+        <% a.funnel.each do |step| %>
+          <li>
+            <div class="mb-1 flex items-baseline justify-between text-sm">
+              <span class="font-medium"><%= step[:stage].capitalize %></span>
+              <span class="tabular-nums text-slate-600">
+                <%= step[:count] %> · <%= step[:percent_of_total] %>%
+                <% if step[:drop_off] %><span class="text-slate-400">(−<%= step[:drop_off] %>% from previous)</span><% end %>
+              </span>
+            </div>
+            <div class="h-3 rounded bg-slate-100">
+              <div class="h-3 rounded" style="width: <%= [ step[:percent_of_total], 1 ].max %>%; background: #2a78d6"></div>
+            </div>
+          </li>
+        <% end %>
+      </ol>
+      <p class="mt-4 text-xs text-slate-500">Screened = any reply beyond an outright rejection (shortlisted, AI screen, assessment, recruiter). By furthest stage ever reached.</p>
+    </section>
+
+    <section class="rounded-lg border border-slate-200 bg-white p-5">
+      <h2 class="mb-4 font-semibold">Response</h2>
+      <dl class="grid grid-cols-3 gap-4 text-center">
+        <div><dt class="text-xs text-slate-500">Response rate</dt><dd class="text-2xl font-semibold tabular-nums"><%= rates[:response] %>%</dd></div>
+        <div><dt class="text-xs text-slate-500">Rejection rate</dt><dd class="text-2xl font-semibold tabular-nums"><%= rates[:rejection] %>%</dd></div>
+        <div><dt class="text-xs text-slate-500">Ghost rate</dt><dd class="text-2xl font-semibold tabular-nums"><%= rates[:ghost] %>%</dd></div>
+      </dl>
+      <dl class="mt-6 grid grid-cols-3 gap-4 border-t border-slate-100 pt-4 text-center">
+        <div><dt class="text-xs text-slate-500">Median days to first reply</dt><dd class="text-xl font-semibold tabular-nums"><%= timings[:median_first_response] || "—" %></dd></div>
+        <div><dt class="text-xs text-slate-500">p90 days to first reply</dt><dd class="text-xl font-semibold tabular-nums"><%= timings[:p90_first_response] || "—" %></dd></div>
+        <div><dt class="text-xs text-slate-500">Median days to rejection</dt><dd class="text-xl font-semibold tabular-nums"><%= timings[:median_rejection] || "—" %></dd></div>
+      </dl>
+      <p class="mt-4 text-xs text-slate-500">
+        A reply is anything from the company after applying (shortlist, screen, assessment, interview, rejection, offer) — not "application viewed" notices.
+        Ghosted = no activity for <%= Tracker.config[:ghost_after_days] %>+ days at any stage.
+      </p>
+    </section>
+  </div>
+
+  <% if (pipeline = a.pipeline).any? %>
+    <section class="mb-8 rounded-lg border border-slate-200 bg-white p-5">
+      <h2 class="mb-3 font-semibold">Coming up</h2>
+      <ul class="divide-y divide-slate-100 text-sm">
+        <% pipeline.each do |row| %>
+          <li class="flex flex-wrap items-baseline gap-x-4 py-2">
+            <span class="w-44 font-medium tabular-nums"><%= long_time(row[:scheduled_at]) %></span>
+            <%= link_to row[:application].company_name, row[:application], class: "font-medium hover:underline" %>
+            <span class="text-slate-500"><%= row[:application].role %></span>
+            <span class="text-slate-500">Round <%= row[:round] %><%= " · #{row[:label]}" if row[:label] %></span>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+
+  <div class="mb-8 grid gap-6 lg:grid-cols-2">
+    <% { "Per week" => a.over_time(:week), "Per month" => a.over_time(:month) }.each do |title, series| %>
+      <% format = title == "Per week" ? "%d %b" : "%b %Y" %>
+      <% relabel = ->(h) { h.transform_keys { |d| (title == "Per week" ? "wk of " : "") + d.strftime(format) } } %>
+      <section class="rounded-lg border border-slate-200 bg-white p-5">
+        <h2 class="mb-3 font-semibold">Applications and rejections — <%= title.downcase %></h2>
+        <%= column_chart [ { name: "Applications", data: relabel.(series[:applications]) },
+                           { name: "Rejections", data: relabel.(series[:rejections]) } ], **chart_options %>
+        <details class="mt-3 text-sm">
+          <summary class="cursor-pointer text-xs text-slate-500">Show as table</summary>
+          <table class="mt-2 w-full text-left">
+            <thead class="text-xs text-slate-500"><tr><th><%= title == "Per week" ? "Week of" : "Month" %></th><th class="text-right">Applications</th><th class="text-right">Rejections</th></tr></thead>
+            <tbody class="tabular-nums">
+              <% series[:applications].each do |bucket, count| %>
+                <tr><td><%= bucket.strftime(format) %></td><td class="text-right"><%= count %></td><td class="text-right"><%= series[:rejections][bucket] %></td></tr>
+              <% end %>
+            </tbody>
+          </table>
+        </details>
+      </section>
+    <% end %>
+  </div>
+
+  <div class="grid gap-6 lg:grid-cols-5">
+    <section class="rounded-lg border border-slate-200 bg-white p-5 lg:col-span-3">
+      <h2 class="mb-1 font-semibold">By company</h2>
+      <p class="mb-3 text-xs text-slate-500">
+        One line per application, each with its own status and dated steps. A company you applied to
+        for two roles shows two lines. Hover a step for details.
+      </p>
+      <div class="max-h-[32rem] overflow-y-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="sticky top-0 bg-white text-xs uppercase tracking-wide text-slate-500">
+            <tr><th class="py-1">Company</th><th class="py-1">Role · status · journey</th></tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <% a.per_company.each do |row| %>
+              <tr>
+                <td class="w-40 py-2 pr-3 align-top">
+                  <%= link_to row[:company], applications_path(q: row[:company]), class: "font-medium hover:underline" %>
+                  <% if row[:applications] > 1 %><div class="text-xs text-slate-500"><%= row[:applications] %> applications</div><% end %>
+                </td>
+                <td class="space-y-2 py-2 align-top">
+                  <% row[:apps].each do |app| %>
+                    <div>
+                      <div class="mb-1 flex flex-wrap items-center gap-2">
+                        <%= link_to (app.role || "Role not stated"), app, class: "hover:underline" %>
+                        <%= outcome_badge(app) %>
+                      </div>
+                      <%= render "applications/journey", application: app %>
+                    </div>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="rounded-lg border border-slate-200 bg-white p-5 lg:col-span-2">
+      <h2 class="mb-1 font-semibold">By source</h2>
+      <p class="mb-3 text-xs text-slate-500">Which channels actually get replies.</p>
+      <table class="w-full text-left text-sm">
+        <thead class="text-xs uppercase tracking-wide text-slate-500">
+          <tr><th class="py-1">Source</th><th class="py-1 text-right">Apps</th><th class="py-1 text-right">Replied</th><th class="py-1 text-right">Rate</th></tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 tabular-nums">
+          <% a.per_source.each do |row| %>
+            <tr>
+              <td class="py-1.5"><%= link_to row[:source], applications_path(source: row[:source]), class: "hover:underline" %></td>
+              <td class="py-1.5 text-right"><%= row[:applications] %></td>
+              <td class="py-1.5 text-right"><%= row[:responded] %></td>
+              <td class="py-1.5 text-right"><%= row[:response_rate] %>%</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </section>
+  </div>
+<% end %>
