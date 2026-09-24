@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_000005) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_000006) do
   create_table "application_events", force: :cascade do |t|
     t.integer "application_id", null: false
     t.datetime "created_at", null: false
@@ -63,6 +63,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000005) do
     t.string "from_domain"
     t.string "gmail_message_id", null: false
     t.boolean "is_reschedule", default: false, null: false
+    t.string "linkedin_type"
     t.boolean "needs_review", default: false, null: false
     t.boolean "outgoing", default: false, null: false
     t.text "raw_snippet"
@@ -87,10 +88,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000005) do
     t.date "date_from"
     t.date "date_to"
     t.integer "emails_classified", default: 0, null: false
+    t.integer "emails_fetched", default: 0, null: false
     t.integer "emails_found", default: 0, null: false
+    t.integer "emails_new", default: 0, null: false
+    t.integer "emails_to_classify", default: 0, null: false
     t.integer "errors_count", default: 0, null: false
     t.datetime "finished_at"
     t.text "last_error"
+    t.string "phase", default: "fetching", null: false
     t.datetime "started_at", null: false
     t.string "state", default: "running", null: false
     t.datetime "updated_at", null: false
