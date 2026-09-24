@@ -1,0 +1,50 @@
+<% content_for :title, "Applications" %>
+
+<div class="mb-4 flex items-baseline justify-between">
+  <h1 class="text-2xl font-semibold">Applications</h1>
+  <p class="text-xs text-slate-500">Filters work on what's already synced. To fetch new mail, use <%= link_to "Sync", sync_path, class: "underline" %>.</p>
+</div>
+
+<%= form_with url: applications_path, method: :get,
+              data: { controller: "filters", turbo_frame: "applications_results", turbo_action: "advance" },
+              class: "mb-4 flex flex-wrap items-end gap-3 rounded-lg border border-slate-200 bg-white p-3 text-sm" do |f| %>
+  <label class="flex flex-col gap-1">
+    <span class="text-xs text-slate-500">Search</span>
+    <%= f.search_field :q, value: @filter.q, placeholder: "Company or role",
+                       data: { action: "input->filters#search" },
+                       class: "w-56 rounded-md border-slate-300 px-2 py-1" %>
+  </label>
+  <label class="flex flex-col gap-1">
+    <span class="text-xs text-slate-500">Status</span>
+    <%= f.select :outcome, Application::OUTCOMES.invert, { include_blank: "All", selected: @filter.outcome },
+                 data: { action: "change->filters#submit" }, class: "rounded-md border-slate-300 px-2 py-1" %>
+  </label>
+  <label class="flex flex-col gap-1">
+    <span class="text-xs text-slate-500">Source</span>
+    <%= f.select :source, @sources, { include_blank: "All", selected: @filter.source },
+                 data: { action: "change->filters#submit" }, class: "rounded-md border-slate-300 px-2 py-1" %>
+  </label>
+  <label class="flex flex-col gap-1">
+    <span class="text-xs text-slate-500">Applied</span>
+    <%= f.select :range, Applications::Filter::RANGES.invert, { include_blank: "Any time", selected: @filter.range },
+                 data: { filters_target: "range", action: "change->filters#rangeChanged" },
+                 class: "rounded-md border-slate-300 px-2 py-1" %>
+  </label>
+  <label class="flex flex-col gap-1" data-filters-target="custom">
+    <span class="text-xs text-slate-500">From</span>
+    <%= f.date_field :from, value: @filter.from, data: { action: "change->filters#submit" },
+                     class: "rounded-md border-slate-300 px-2 py-1" %>
+  </label>
+  <label class="flex flex-col gap-1" data-filters-target="custom">
+    <span class="text-xs text-slate-500">To</span>
+    <%= f.date_field :to, value: @filter.to, data: { action: "change->filters#submit" },
+                     class: "rounded-md border-slate-300 px-2 py-1" %>
+  </label>
+  <%= hidden_field_tag :sort, @filter.sort %>
+  <%= hidden_field_tag :dir, @filter.dir %>
+  <%= link_to "Clear", applications_path, class: "pb-1 text-slate-500 underline", data: { turbo_frame: "_top" } %>
+<% end %>
+
+<%= turbo_frame_tag "applications_results", data: { turbo_action: "advance" } do %>
+  <%= render "results", applications: @applications, filter: @filter %>
+<% end %>

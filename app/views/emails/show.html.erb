@@ -1,0 +1,20 @@
+<% content_for :title, @email.subject %>
+
+<% if @email.application %>
+  <%= link_to "← #{@email.application.company_name}", @email.application, class: "text-sm text-slate-500 hover:underline" %>
+<% end %>
+
+<h1 class="mt-2 mb-1 text-xl font-semibold"><%= @email.subject.presence || "(no subject)" %></h1>
+<p class="mb-6 text-sm text-slate-500"><%= @email.from_address %> · <%= @email.sent_at.strftime("%d %b %Y, %H:%M") %></p>
+
+<dl class="mb-6 grid grid-cols-2 gap-x-6 gap-y-1 rounded-lg border border-slate-200 bg-white p-4 text-sm sm:grid-cols-4">
+  <dt class="text-slate-500">Category</dt><dd><%= @email.category || "unclassified" %></dd>
+  <dt class="text-slate-500">Confidence</dt><dd><%= @email.confidence %></dd>
+  <dt class="text-slate-500">Company</dt><dd><%= @email.extracted_company || "—" %></dd>
+  <dt class="text-slate-500">Role</dt><dd><%= @email.extracted_role || "—" %></dd>
+  <dt class="text-slate-500">Round label</dt><dd><%= @email.round_label || "—" %></dd>
+  <dt class="text-slate-500">Round hint</dt><dd><%= @email.round_hint || "—" %></dd>
+  <dt class="text-slate-500">Reason</dt><dd class="col-span-1 sm:col-span-3"><%= @email.classifier_reason %></dd>
+</dl>
+
+<pre class="whitespace-pre-wrap rounded-lg border border-slate-200 bg-white p-4 text-sm"><%= @email.body %></pre>

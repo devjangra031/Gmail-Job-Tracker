@@ -1,0 +1,38 @@
+<% content_for :title, "Add application" %>
+
+<h1 class="mb-1 text-2xl font-semibold">Add application</h1>
+<p class="mb-6 text-sm text-slate-500">For applications with no email behind them. Emails that arrive later from the same company and role join it automatically.</p>
+
+<%= form_with model: @application, url: applications_path, class: "max-w-lg space-y-4 rounded-lg border border-slate-200 bg-white p-5 text-sm" do |f| %>
+  <% if @application.errors.any? %>
+    <ul class="rounded-md bg-rose-50 px-4 py-2 text-rose-800">
+      <% @application.errors.full_messages.each do |message| %><li><%= message %></li><% end %>
+    </ul>
+  <% end %>
+
+  <label class="block">
+    <span class="mb-1 block font-medium">Company *</span>
+    <%= f.text_field :company_name, required: true, class: "w-full rounded-md border-slate-300 px-2 py-1.5" %>
+  </label>
+  <label class="block">
+    <span class="mb-1 block font-medium">Role</span>
+    <%= f.text_field :role, class: "w-full rounded-md border-slate-300 px-2 py-1.5" %>
+  </label>
+  <div class="flex gap-4">
+    <label class="block flex-1">
+      <span class="mb-1 block font-medium">Source</span>
+      <%= f.text_field :source, placeholder: "manual, referral, company site…", class: "w-full rounded-md border-slate-300 px-2 py-1.5" %>
+    </label>
+    <label class="block">
+      <span class="mb-1 block font-medium">Applied on</span>
+      <%= f.date_field :applied_on, value: params.dig(:application, :applied_on) || Date.current, max: Date.current,
+                       class: "rounded-md border-slate-300 px-2 py-1.5" %>
+    </label>
+  </div>
+  <label class="block">
+    <span class="mb-1 block font-medium">Notes</span>
+    <%= f.text_area :notes, rows: 3, class: "w-full rounded-md border-slate-300 px-2 py-1.5" %>
+  </label>
+
+  <%= f.submit "Add application", class: "rounded-md bg-slate-900 px-4 py-2 text-white hover:bg-slate-700" %>
+<% end %>

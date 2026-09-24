@@ -1,0 +1,95 @@
+<% content_for :title, @application.company_name %>
+
+<%= link_to "← Applications", applications_path, class: "text-sm text-slate-500 hover:underline" %>
+
+<div class="mt-2 mb-8 flex flex-wrap items-baseline gap-3">
+  <h1 class="text-2xl font-semibold"><%= @application.company_name %></h1>
+  <span class="text-slate-500"><%= @application.role %></span>
+  <%= outcome_badge(@application) %>
+  <span class="text-sm text-slate-500">
+    <%= @application.stage_label %> · via <%= @application.source %><%= " · added manually" if @application.manual? %>
+    · applied <%= short_time(@application.first_applied_at) %>
+    · last activity <%= short_time(@application.last_activity_at) %> (<%= @application.days_since_last_activity %>d ago)
+  </span>
+</div>
+
+<section class="mb-6 rounded-lg border border-slate-200 bg-white p-4">
+  <h2 class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Journey</h2>
+  <%= render "applications/journey", application: @application %>
+</section>
+
+<% if @application.notes.present? %>
+  <p class="mb-6 rounded border border-slate-200 bg-white p-3 text-sm"><%= @application.notes %></p>
+<% end %>
+
+<ol class="space-y-4">
+  <%# One card per round (in order of first appearance); round-less events get their own card. %>
+  <% @events.group_by { |e| e.round_number || "event-#{e.id}" }.each_value do |group| %>
+    <% head = group.first %>
+    <li class="rounded-lg border border-slate-200 bg-white p-4">
+      <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <% if head.round_number.to_i.positive? %>
+          Round <%= head.round_number %><%= " · #{group.filter_map(&:round_label).first}" if group.any?(&:round_label) %>
+        <% elsif head.round_number == 0 %>
+          Application
+        <% else %>
+          <%= kind_label(head.kind) %>
+        <% end %>
+      </div>
+
+      <ul class="space-y-2">
+        <% group.each do |event| %>
+          <li class="flex flex-wrap items-baseline gap-x-3 text-sm <%= "ml-6 text-slate-600" if event.is_reschedule %>">
+            <span class="w-28 shrink-0 text-slate-400"><%= short_time(event.occurred_at) %></span>
+            <span class="font-medium"><%= event.is_reschedule ? "↳ Rescheduled" : kind_label(event.kind) %></span>
+            <% if event.scheduled_at %>
+              <span>for <%= long_time(event.scheduled_at) %></span>
+            <% end %>
+            <% if event.email %>
+              <%= link_to event.email.subject.presence || "(no subject)", event.email, class: "text-sky-700 hover:underline" %>
+            <% else %>
+              <span class="rounded bg-violet-50 px-1.5 text-xs text-violet-800">added by you</span>
+              <% if event.note.present? %><span class="text-slate-600">“<%= event.note %>”</span><% end %>
+              <%= button_to "Remove", application_event_path(@application, event), method: :delete,
+                    form: { class: "inline", data: { turbo_confirm: "Remove this update?" } },
+                    class: "text-xs text-rose-700 hover:underline" %>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    </li>
+  <% end %>
+</ol>
+
+<section class="mt-8 rounded-lg border border-slate-200 bg-white p-5">
+  <h2 class="mb-1 font-semibold">Add an update</h2>
+  <p class="mb-4 text-sm text-slate-500">
+    For things that didn't come by email: a rejection on a call, an interview set up on WhatsApp, an offer in person.
+    It updates the status and journey just like an email would, and stays even if you re-sync.
+  </p>
+  <%= form_with scope: :event, url: application_events_path(@application), class: "flex flex-wrap items-end gap-3 text-sm" do |f| %>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs text-slate-500">What happened</span>
+      <%= f.select :kind, Applications::AddManualEvent::KINDS.map { |k| [ kind_label(k), k ] },
+                   { selected: "rejection" }, class: "rounded-md border-slate-300 px-2 py-1.5" %>
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs text-slate-500">On</span>
+      <%= f.date_field :occurred_on, value: Date.current, max: Date.current, required: true,
+                       class: "rounded-md border-slate-300 px-2 py-1.5" %>
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs text-slate-500">Round name (optional)</span>
+      <%= f.text_field :round_label, placeholder: "e.g. HR round", class: "w-36 rounded-md border-slate-300 px-2 py-1.5" %>
+    </label>
+    <label class="flex flex-col gap-1">
+      <span class="text-xs text-slate-500">Interview time (optional)</span>
+      <%= f.datetime_local_field :scheduled_at, class: "rounded-md border-slate-300 px-2 py-1.5" %>
+    </label>
+    <label class="flex min-w-48 flex-1 flex-col gap-1">
+      <span class="text-xs text-slate-500">Note (optional)</span>
+      <%= f.text_field :note, placeholder: "e.g. told on a call by the recruiter", class: "rounded-md border-slate-300 px-2 py-1.5" %>
+    </label>
+    <%= f.submit "Add update", class: "rounded-md bg-slate-900 px-4 py-1.5 text-white hover:bg-slate-700" %>
+  <% end %>
+</section>

@@ -1,0 +1,44 @@
+<p class="mb-2 text-sm text-slate-500"><%= pluralize(applications.size, "application") %><%= " matching" if filter.active? %></p>
+
+<div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+  <table class="min-w-full text-sm">
+    <thead class="bg-slate-100 text-left text-xs uppercase tracking-wide text-slate-500">
+      <tr>
+        <th class="px-4 py-2"><%= sort_link filter, "company", "Company" %></th>
+        <th class="px-4 py-2"><%= sort_link filter, "role", "Role" %></th>
+        <th class="px-4 py-2"><%= sort_link filter, "source", "Source" %></th>
+        <th class="px-4 py-2"><%= sort_link filter, "status", "Status" %></th>
+        <th class="px-4 py-2 text-right"><%= sort_link filter, "round", "Round" %></th>
+        <th class="px-4 py-2"><%= sort_link filter, "applied", "First applied" %></th>
+        <th class="px-4 py-2"><%= sort_link filter, "activity", "Last activity" %></th>
+        <th class="px-4 py-2 text-right"><%= sort_link filter, "idle", "Days idle" %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% applications.each do |application| %>
+        <tr class="border-t border-slate-100">
+          <td class="px-4 py-2 font-medium">
+            <%= link_to application.company_name, application, class: "hover:underline", data: { turbo_frame: "_top" } %>
+          </td>
+          <td class="px-4 py-2"><%= application.role || "—" %></td>
+          <td class="px-4 py-2 text-slate-500"><%= application.source %></td>
+          <td class="px-4 py-2">
+            <%= outcome_badge(application) %>
+          </td>
+          <td class="px-4 py-2 text-right"><%= application.derived_round %></td>
+          <td class="px-4 py-2 whitespace-nowrap"><%= short_time(application.first_applied_at) %></td>
+          <td class="px-4 py-2 whitespace-nowrap"><%= short_time(application.last_activity_at) %></td>
+          <td class="px-4 py-2 text-right"><%= application.days_since_last_activity %></td>
+        </tr>
+        <tr>
+          <td colspan="8" class="px-4 pb-3 pt-0">
+            <%= render "applications/journey", application: application %>
+          </td>
+        </tr>
+      <% end %>
+      <% if applications.empty? %>
+        <tr><td colspan="8" class="px-4 py-8 text-center text-slate-500">No applications match these filters.</td></tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

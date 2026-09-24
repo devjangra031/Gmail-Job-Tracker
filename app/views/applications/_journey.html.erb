@@ -1,0 +1,27 @@
+<%# Linear path of one application: Applied 11 Sep → R1 AI screening 13 Sep → … → Rejected 20 Sep %>
+<% steps = application.journey %>
+<% step_classes = { "rejection" => "border-rose-200 bg-rose-50 text-rose-800",
+                    "offer" => "border-emerald-200 bg-emerald-50 text-emerald-800",
+                    "withdrawn" => "border-slate-300 bg-slate-100 text-slate-700" } %>
+<ol class="flex flex-wrap items-center gap-x-1 gap-y-1 text-xs">
+  <% steps.each_with_index do |step, index| %>
+    <% if index.positive? %><li aria-hidden="true" class="text-slate-400">→</li><% end %>
+    <li class="whitespace-nowrap rounded-md border px-1.5 py-0.5 <%= step_classes.fetch(step.kind, "border-slate-200 bg-white text-slate-700") %>"
+        title="<%= [ kind_label(step.kind), ("interview at #{long_time(step.scheduled_at)}" if step.scheduled_at),
+                     ("rescheduled #{pluralize(step.reschedules, 'time')}" if step.reschedules.positive?),
+                     ("added by you" if step.manual), step.note ].compact.join(' · ') %>">
+      <% if step.round %><span class="font-semibold">R<%= step.round %></span><% end %>
+      <span><%= step.label %></span>
+      <span class="text-slate-500"><%= step.at.strftime("%d %b") %></span>
+      <% if step.reschedules.positive? %><span class="text-amber-700">↻<%= step.reschedules %></span><% end %>
+      <% if step.completed %><span class="text-emerald-700">✓</span><% end %>
+      <% if step.manual %><span class="text-violet-700" title="added by you">✎</span><% end %>
+    </li>
+  <% end %>
+  <% if !application.terminal? && application.ghosted? %>
+    <li aria-hidden="true" class="text-slate-400">→</li>
+    <li class="whitespace-nowrap rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-amber-800">
+      no reply for <%= application.days_since_last_activity %>d
+    </li>
+  <% end %>
+</ol>
