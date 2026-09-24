@@ -10,13 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_000006) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_000007) do
   create_table "application_events", force: :cascade do |t|
     t.integer "application_id", null: false
     t.datetime "created_at", null: false
     t.integer "email_id"
     t.boolean "is_reschedule", default: false, null: false
     t.string "kind", null: false
+    t.string "note"
     t.datetime "occurred_at", null: false
     t.string "round_label"
     t.integer "round_number"
