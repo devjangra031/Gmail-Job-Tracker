@@ -120,8 +120,6 @@ GEM
       multipart-post (~> 2.0)
     faraday-net_http (3.4.4)
       net-http (~> 0.5)
-    ffi (1.17.4-x64-mingw-ucrt)
-    ffi (1.17.4-x86_64-linux-gnu)
     globalid (1.4.0)
       activesupport (>= 6.1)
     google-apis-core (1.2.5)
@@ -150,9 +148,7 @@ GEM
     hashdiff (1.2.1)
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
-    image_processing (1.14.0)
-      mini_magick (>= 4.9.5, < 6)
-      ruby-vips (>= 2.0.17, < 3)
+    image_processing (2.1.0)
     importmap-rails (2.2.3)
       actionpack (>= 6.0.0)
       activesupport (>= 6.0.0)
@@ -179,8 +175,6 @@ GEM
       net-pop
       net-smtp
     marcel (1.2.1)
-    mini_magick (5.4.0)
-      logger
     mini_mime (1.1.5)
     minitest (6.0.6)
       drb (~> 2.0)
@@ -330,9 +324,6 @@ GEM
       faraday (>= 1)
       faraday-multipart (>= 1)
     ruby-progressbar (1.13.0)
-    ruby-vips (2.3.0)
-      ffi (~> 1.12)
-      logger
     securerandom (0.4.1)
     signet (0.22.0)
       addressable (~> 2.8)
@@ -391,7 +382,7 @@ DEPENDENCIES
   dotenv-rails
   google-apis-gmail_v1
   googleauth
-  image_processing (~> 1.2)
+  image_processing (~> 2.1)
   importmap-rails
   json (< 3)
   propshaft
