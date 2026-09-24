@@ -1,0 +1,113 @@
+# Job tracker settings. Edit and restart the server to apply.
+shared:
+  # Gmail search query. The date range is appended at sync time as after:/before:.
+  # The last line keeps job suggestions ("X is hiring", alerts) from being fetched at all.
+  gmail_query: >-
+    (subject:(application OR applied OR candidacy OR "thank you for your interest"
+    OR interview OR assessment OR offer OR "next steps" OR shortlisted) OR from:(greenhouse.io OR
+    lever.co OR myworkdayjobs.com OR workday.com OR ashbyhq.com OR
+    smartrecruiters.com OR icims.com OR naukri.com OR jobs-noreply@linkedin.com OR
+    indeed.com OR cutshort.io OR instahyre.com))
+    -from:(naukrialerts@naukri.com OR jobalerts-noreply@linkedin.com)
+    -subject:("is hiring" OR "early applicant" OR "jobs similar" OR "jobs for you" OR "job alert")
+
+  # Port of the loopback OAuth redirect (http://localhost:PORT/ must be an authorized
+  # redirect URI of the OAuth client in credentials.json; explore.rb used 8080).
+  gmail_redirect_port: 8080
+  # Retries for Gmail 429 / 5xx before giving up, with exponential backoff.
+  gmail_max_retries: 5
+  # Client-side rate limit. Each message fetch costs 5 quota units; Google allows about
+  # 15,000 units per minute per user, but bursts still trip it. 5/s = 1,500 units/min.
+  gmail_requests_per_second: 5
+
+  # Default range for a sync, in days back from today. The sync form lets you change it.
+  default_sync_days: 60
+
+  # Job suggestions are recognised locally and never sent to Groq (no tokens spent).
+  # Senders whose mail is only ever suggestions:
+  noise_senders:
+    - naukrialerts@naukri.com
+    - jobalert@naukri.com
+    - fastforward.sales@naukri.com
+    - jobalerts-noreply@linkedin.com
+    - donotreply@match.indeed.com
+    - alert@jobsalert.shine.com
+    - information@mailers.hdfcbank.bank.in
+  # Subject phrases (case-insensitive) that only appear on suggestions:
+  noise_subject_phrases:
+    - is hiring
+    - be an early applicant
+    - jobs similar to
+    - jobs for you
+    - job alert
+    - "your job's expiring"
+    - apply now to
+    - took action on your profile
+    - recommended jobs
+    - new jobs for
+    - recruiters are searching for roles
+    - profile is getting noticed
+    - hiring trends
+    - your resume is incomplete
+    - highlight your application
+    - verify your candidate account
+    - hiring now
+    - "% discount"
+    - rate your application experience
+
+  # Times without an explicit zone (in emails and in the UI) are read in this zone.
+  time_zone: Asia/Kolkata
+
+  # Groq model ID. Run `bin/rails tracker:models` to list what Groq currently serves.
+  groq_model: openai/gpt-oss-120b
+  # Only sent for reasoning models (gpt-oss, qwen3); set to null for others.
+  groq_reasoning_effort: low
+  # Pause between classifications (free-tier friendly), in seconds.
+  groq_delay_seconds: 2
+  # Retries for 429 / 5xx before giving up, with exponential backoff.
+  groq_max_retries: 5
+  # If Groq asks us to wait longer than this (e.g. a daily limit), stop the run
+  # cleanly instead; everything classified so far is kept and the run can resume.
+  groq_max_wait_seconds: 120
+
+  # Classifications below this confidence go to the review queue.
+  review_threshold: 0.7
+
+  # A non-terminal application with no activity for this many days counts as ghosted.
+  ghost_after_days: 30
+
+  # Sender domains that belong to an ATS or job board rather than the employer.
+  # Matched as a suffix (hire.lever.co matches lever.co). The matched entry is the
+  # application's `source`; mail from any other domain has source "direct".
+  ats_domains:
+    - greenhouse.io
+    - greenhouse-mail.io
+    - lever.co
+    - myworkdayjobs.com
+    - myworkday.com
+    - workday.com
+    - ashbyhq.com
+    - smartrecruiters.com
+    - icims.com
+    - naukri.com
+    - linkedin.com
+    - indeed.com
+    - indeedemail.com
+    - instahyre.com
+    - cutshort.io
+    - wellfound.com
+    - hirist.tech
+    - darwinbox.in
+    - keka.com
+    - zohorecruit.com
+
+  # Personal mail providers: never usable as a company fallback.
+  personal_domains:
+    - gmail.com
+    - googlemail.com
+    - outlook.com
+    - hotmail.com
+    - yahoo.com
+    - icloud.com
+    # Google Calendar reminders (calendar-notification@google.com) are not the employer.
+    - google.com

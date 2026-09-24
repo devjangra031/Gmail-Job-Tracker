@@ -36,6 +36,10 @@ module JobTracker
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
 
+    # App settings from config/tracker.yml, read via Rails.configuration.x.tracker.
+    config.x.tracker = config_for(:tracker)
+    config.time_zone = config.x.tracker[:time_zone]
+
     # Don't generate system test files.
     config.generators.system_tests = nil
   end
