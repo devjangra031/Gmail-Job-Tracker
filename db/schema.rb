@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_000004) do
   create_table "application_events", force: :cascade do |t|
     t.integer "application_id", null: false
     t.datetime "created_at", null: false
@@ -79,6 +79,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000003) do
     t.index ["needs_review"], name: "index_emails_on_needs_review"
     t.index ["sent_at"], name: "index_emails_on_sent_at"
     t.index ["thread_id"], name: "index_emails_on_thread_id"
+  end
+
+  create_table "sync_runs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "date_from"
+    t.date "date_to"
+    t.integer "emails_classified", default: 0, null: false
+    t.integer "emails_found", default: 0, null: false
+    t.integer "errors_count", default: 0, null: false
+    t.datetime "finished_at"
+    t.text "last_error"
+    t.datetime "started_at", null: false
+    t.string "state", default: "running", null: false
+    t.datetime "updated_at", null: false
+    t.index ["state"], name: "index_sync_runs_on_state"
   end
 
   add_foreign_key "application_events", "applications"
