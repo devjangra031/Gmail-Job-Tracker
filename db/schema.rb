@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_000004) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_000005) do
   create_table "application_events", force: :cascade do |t|
     t.integer "application_id", null: false
     t.datetime "created_at", null: false
@@ -64,6 +64,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000004) do
     t.string "gmail_message_id", null: false
     t.boolean "is_reschedule", default: false, null: false
     t.boolean "needs_review", default: false, null: false
+    t.boolean "outgoing", default: false, null: false
     t.text "raw_snippet"
     t.string "review_state"
     t.integer "round_hint"
