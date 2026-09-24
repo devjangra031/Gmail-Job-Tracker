@@ -10,7 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_000003) do
+  create_table "application_events", force: :cascade do |t|
+    t.integer "application_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "email_id"
+    t.boolean "is_reschedule", default: false, null: false
+    t.string "kind", null: false
+    t.datetime "occurred_at", null: false
+    t.string "round_label"
+    t.integer "round_number"
+    t.datetime "scheduled_at"
+    t.datetime "updated_at", null: false
+    t.index ["application_id", "occurred_at"], name: "index_application_events_on_application_id_and_occurred_at"
+    t.index ["application_id"], name: "index_application_events_on_application_id"
+    t.index ["email_id"], name: "index_application_events_on_email_id"
+    t.index ["scheduled_at"], name: "index_application_events_on_scheduled_at"
+  end
+
   create_table "applications", force: :cascade do |t|
     t.string "company_key", null: false
     t.string "company_name", null: false
@@ -64,5 +81,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000002) do
     t.index ["thread_id"], name: "index_emails_on_thread_id"
   end
 
+  add_foreign_key "application_events", "applications"
+  add_foreign_key "application_events", "emails"
   add_foreign_key "emails", "applications"
 end
