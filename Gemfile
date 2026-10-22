@@ -19,7 +19,7 @@ gem "tailwindcss-rails"
 # json 3.0 made JSON.parse options keyword-only; ActiveSupport 8.1.3 still passes a
 # positional hash when reading the session cookie, so every request with a cookie
 # crashed. Remove this pin once Rails supports json 3.
-gem "json", "< 3"
+gem "json", "< 4"
 
 # Gmail (read-only), Groq via OpenAI-compatible API, env vars, charts
 gem "google-apis-gmail_v1"
